@@ -161,5 +161,5 @@ while True:
             except Exception as e:
                 print("Something failed when sending a message:", e)
 
-    print("Checking again in 60 seconds\n")
-    time.sleep(60)
+    print("Checking again in 90 seconds\n")
+    time.sleep(90)
