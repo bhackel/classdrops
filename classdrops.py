@@ -112,7 +112,11 @@ while True:
     section_all = soup.find_all('tr', {'class': 'sectxt'})
     for section in section_all:
         col = section.find_all('td')
-        resource_elem = col[10]
+        try:
+            resource_elem = col[10]
+        except IndexError:
+            # Skip if not found, such as when section is cancelled
+            continue
 
         # Check if the class is not full
         resource_text = resource_elem.getText().strip()
