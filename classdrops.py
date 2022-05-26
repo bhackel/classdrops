@@ -8,14 +8,15 @@ import dotenv
 from dotenv import dotenv_values
 
 toast = win10toast.ToastNotifier()
-config = dotenv.dotenv_values("credentials.env")
-print(config)
+config = dotenv.dotenv_values('config.env')
 
-
-with open("courses.txt") as f:
-    courses = f.read().strip()
+courses = config['courses']
 if len(courses) == 0:
-    assert "courses.txt is empty, add some course names."
+    assert "courses in config.env is empty, add some course names."
+
+term = config['term']
+if len(term) == 0:
+    assert "term in config.env is missing. Format is FA22, WI22, SP22, S122, S222"
 
 headers = {
     'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
@@ -37,7 +38,7 @@ headers = {
 }
 
 data = [
-    ('selectedTerm', 'FA23'),
+    ('selectedTerm', term),
     ('xsoc_term', ''),
     ('loggedIn', 'false'),
     ('tabNum', 'tabs-crs'),
@@ -144,18 +145,10 @@ while True:
             toast.show_toast("ClassDrops Bot",f"Open class found: {courses}",duration=5)
 
             try:
-                # Fetch details from file
-                with open('nudes.txt', 'r') as f:
-                    contents = f.readlines()
-                    gmail_address = contents[0]
-                    gmail_password = contents[1]
-                    att_number = contents[2]
-
-                # Setup Server
-                if server is None:
-                    server = smtplib.SMTP("smtp.gmail.com", 587)
-                    server.starttls()
-                    server.login(gmail_address, gmail_password)
+                # Fetch details from config
+                gmail_address = config['email']
+                gmail_password = config['app_pass']
+                att_number = config['phone']
 
                 # Setup message contents
                 section_id = col[2].getText().strip()
@@ -172,18 +165,26 @@ while True:
                 msg = MIMEMultipart()
                 msg['From'] = gmail_address
                 msg['To'] = f'{att_number}@txt.att.net'
-                msg['Subject'] = "Free Diamonds"
+                msg['Subject'] = "ClassDrops Bot"
                 body = message
                 msg.attach(MIMEText(body, 'plain'))
-
                 sms = msg.as_string()
+                print(f"Message: {message}")
+
+                # Setup Server
+                server = smtplib.SMTP_SSL('smtp.gmail.com', 465)
+                server.login(gmail_address, gmail_password)
 
                 # Send text message through SMS gateway of destination number
-                print(message)
                 server.sendmail(gmail_address, f'{att_number}@txt.att.net', sms)
+                server.quit()
+
                 print("Successfully sent message")
-            except Exception as e:
-                print("Something failed when sending a message:", e)
+            except KeyError:
+                assert "Invalid credentials in config.env"
+            finally:
+                print("Waiting 600 seconds")
+                time.sleep(600)
 
     print("Checking again in 180 seconds\n")
-    time.sleep(180)
+    time.sleep(240)
