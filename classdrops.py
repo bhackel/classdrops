@@ -122,7 +122,11 @@ while True:
 
     # Get HTML response from link with selected classes inputted
     url = 'https://act.ucsd.edu/scheduleOfClasses/scheduleOfClassesStudentResult.htm'
-    response = requests.post(url, headers=headers, data=data, timeout=10)
+    try:
+        response = requests.post(url, headers=headers, data=data, timeout=10)
+    except requests.exceptions.ReadTimeout:
+        print("Connection timed out")
+        continue
     soup = BS(response.text, 'html.parser')
 
     # Find all sections for classes using specific class tag
@@ -186,5 +190,6 @@ while True:
                 print("Waiting 600 seconds")
                 time.sleep(600)
 
-    print("Checking again in 180 seconds\n")
-    time.sleep(240)
+    delay = 240
+    print(f"Checking again in {delay} seconds\n")
+    time.sleep(delay)
