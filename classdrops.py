@@ -11,12 +11,15 @@ toast = win10toast.ToastNotifier()
 config = dotenv.dotenv_values('config.env')
 
 courses = config['courses']
-if len(courses) == 0:
-    assert "courses in config.env is empty, add some course names."
+sections = config['sections']
+if len(courses) == 0 and len(sections) == 0:
+    assert "courses and sections in config.env is empty, add some course names or section IDs."
 
 term = config['term']
 if len(term) == 0:
     assert "term in config.env is missing. Format is FA22, WI22, SP22, S122, S222"
+
+useSubjects = 'tabs-crs' if (config['useSubjects'] == "True") else 'tabs-sec'
 
 headers = {
     'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
@@ -41,7 +44,7 @@ data = [
     ('selectedTerm', term),
     ('xsoc_term', ''),
     ('loggedIn', 'false'),
-    ('tabNum', 'tabs-crs'),
+    ('tabNum', useSubjects),
     ('_selectedSubjects', '1'),
     ('schedOption1', 'true'),
     ('_schedOption1', 'on'),
@@ -105,7 +108,7 @@ data = [
     ('schEndTimeDept', '12:00'),
     ('schEndAmPmDept', '0'),
     ('courses', courses),
-    ('sections', ''),
+    ('sections', sections),
     ('instructorType', 'begin'),
     ('instructor', ''),
     ('titleType', 'contain'),
@@ -126,6 +129,10 @@ while True:
         response = requests.post(url, headers=headers, data=data, timeout=10)
     except requests.exceptions.ReadTimeout:
         print("Connection timed out")
+        continue
+    except ConnectionResetError:
+        print("Connection was unexpectedly closed. Waiting 180 seconds")
+        sleep(180)
         continue
     soup = BS(response.text, 'html.parser')
 
