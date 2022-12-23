@@ -175,7 +175,7 @@ while True:
                 # Format everything using MIME
                 msg = MIMEMultipart()
                 msg['From'] = gmail_address
-                msg['To'] = f'{att_number}@txt.att.net'
+                msg['To'] = f'{att_number}@txt.att.net' # hardcoded AT&T
                 msg['Subject'] = "ClassDrops Bot"
                 body = message
                 msg.attach(MIMEText(body, 'plain'))
